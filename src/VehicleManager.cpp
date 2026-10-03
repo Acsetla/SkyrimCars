@@ -27,7 +27,9 @@ namespace SkyrimCars
             return;
         }
 
-        if (InputManager::GetSingleton()->ToggleRequested()) {
+        auto* input = InputManager::GetSingleton();
+
+        if (input->ToggleRequested()) {
             if (_vehicle) {
                 DeleteActiveVehicle();
             } else {
@@ -35,9 +37,38 @@ namespace SkyrimCars
             }
         }
 
+        if (input->EnterRequested()) {
+            if (_vehicle && !_driver) {
+                _driver = RE::PlayerCharacter::GetSingleton();
+            } else if (_driver) {
+                _driver = nullptr;
+                _controller.Reset();
+            }
+        }
+
         if (_vehicle && _driver) {
-            VehicleInput input{};
-            _controller.Tick(_driver, _vehicle, deltaSeconds, input);
+            VehicleInput vehicleInput{};
+
+            if (input->Forward()) {
+                vehicleInput.throttle += 1.0F;
+            }
+            if (input->Backward()) {
+                vehicleInput.throttle -= 1.0F;
+            }
+            if (input->Left()) {
+                vehicleInput.steering -= 1.0F;
+            }
+            if (input->Right()) {
+                vehicleInput.steering += 1.0F;
+            }
+
+            vehicleInput.handbrake = input->Handbrake();
+
+            _controller.Tick(
+                _driver,
+                _vehicle,
+                deltaSeconds,
+                vehicleInput);
         }
     }
 
