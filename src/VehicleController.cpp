@@ -59,11 +59,9 @@ namespace SkyrimCars
         const float yawRate = _steeringAngle * (1.8F + 2.2F * speedFactor);
         const float newHeading = heading + yawRate * deltaSeconds * (_speed >= 0.0F ? 1.0F : -1.0F);
 
-        vehicle->SetAngle(RE::NiPoint3{
-            vehicle->GetAngleX(),
-            vehicle->GetAngleY(),
-            newHeading
-        });
+        auto angle = vehicle->GetAngle();
+        angle.z = newHeading;
+        vehicle->data.angle = angle;
 
         if (std::abs(_speed) > 0.01F) {
             const float distance = _speed * deltaSeconds;
