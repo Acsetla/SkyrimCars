@@ -18,7 +18,7 @@ namespace SkyrimCars
 
         _initialized = true;
         logger::info("SkyrimCars: VehicleManager initialized");
-        RE::DebugNotification("SkyrimCars: vehicle system initialized");
+        RE::DebugNotification("SkyrimCars: Ctrl+I = car stub");
     }
 
     void VehicleManager::Update(float deltaSeconds)
@@ -40,9 +40,11 @@ namespace SkyrimCars
         if (input->EnterRequested()) {
             if (_vehicle && !_driver) {
                 _driver = RE::PlayerCharacter::GetSingleton();
+                RE::DebugNotification("SkyrimCars: driving ON (model stub)");
             } else if (_driver) {
                 _driver = nullptr;
                 _controller.Reset();
+                RE::DebugNotification("SkyrimCars: driving OFF");
             }
         }
 
@@ -84,28 +86,29 @@ namespace SkyrimCars
         }
 
         _type = type;
+        _vehicle = player;
+        _driver = nullptr;
+        _stubVehicle = true;
+        _controller.Reset();
 
-        // Actual NIF/Havok reference creation is the next milestone.
-        // We deliberately do not fake a drivable car by teleporting a
-        // static object through the world.
         logger::info(
-            "SkyrimCars: vehicle spawn requested, type={}",
+            "SkyrimCars: model-free vehicle stub activated, type={}",
             static_cast<int>(_type));
 
         RE::DebugNotification(
-            "SkyrimCars: car asset/physics pipeline is next");
+            "SkyrimCars: car stub ready - press E, then W/A/S/D");
 
-        return false;
+        return true;
     }
 
     void VehicleManager::DeleteActiveVehicle()
     {
-        if (_vehicle) {
-            _vehicle->Disable();
-            _vehicle = nullptr;
-        }
-
+        // The v1 test stub uses the player as the temporary vehicle reference,
+        // so never Disable() this reference. Real car references will be
+        // disabled/removed here once the NIF/Havok assets are installed.
+        _vehicle = nullptr;
         _driver = nullptr;
+        _stubVehicle = false;
         _controller.Reset();
         RE::DebugNotification("SkyrimCars: vehicle deleted");
     }
