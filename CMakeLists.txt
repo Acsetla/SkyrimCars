@@ -22,8 +22,11 @@ set(HEADERS
 )
 
 add_commonlibsse_plugin(${PROJECT_NAME}
-    SOURCES ${SOURCES} ${HEADERS}
+    NAME SkyrimCars
+    AUTHOR Acsetla
+    VERSION ${PROJECT_VERSION}
     COMPATIBLE_RUNTIMES 1.6.1170
+    SOURCES ${SOURCES} ${HEADERS}
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
@@ -36,5 +39,6 @@ if(DEFINED ENV{SKYRIM_MODS_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_MODS_FOLDER}")
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "$<TARGET_FILE:${PROJECT_NAME}>"
             "${OUTPUT_FOLDER}/SKSE/Plugins/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+        VERBATIM
     )
 endif()
