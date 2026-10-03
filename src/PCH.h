@@ -3,6 +3,7 @@
 #include <RE/Skyrim.h>
 #include <SKSE/SKSE.h>
 #include <Windows.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include <algorithm>
 #include <atomic>
