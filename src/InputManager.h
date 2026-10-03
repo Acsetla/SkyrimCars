@@ -19,10 +19,23 @@ namespace SkyrimCars
         bool ToggleRequested();
         bool EnterRequested();
 
+        bool Forward() const;
+        bool Backward() const;
+        bool Left() const;
+        bool Right() const;
+        bool Handbrake() const;
+
     private:
         bool _ctrlDown{ false };
         bool _toggleRequested{ false };
         bool _enterRequested{ false };
-        std::mutex _mutex;
+
+        bool _forward{ false };
+        bool _backward{ false };
+        bool _left{ false };
+        bool _right{ false };
+        bool _handbrake{ false };
+
+        mutable std::mutex _mutex;
     };
 }
