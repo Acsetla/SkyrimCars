@@ -22,9 +22,7 @@ set(HEADERS
 )
 
 add_commonlibsse_plugin(${PROJECT_NAME}
-    NAME SkyrimCars
     AUTHOR Acsetla
-    VERSION ${PROJECT_VERSION}
     COMPATIBLE_RUNTIMES 1.6.1170
     SOURCES ${SOURCES} ${HEADERS}
 )
