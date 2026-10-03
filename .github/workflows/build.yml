@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-2022
@@ -28,15 +31,24 @@ jobs:
         shell: pwsh
         run: cmake --build build --config Release
 
-      - name: Package v1
+      - name: Package
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/SkyrimCars/SKSE/Plugins | Out-Null
           Copy-Item build/Release/SkyrimCars.dll dist/SkyrimCars/SKSE/Plugins/SkyrimCars.dll
           Compress-Archive -Path dist/SkyrimCars -DestinationPath dist/SkyrimCars-v1.0.0-test.zip -Force
 
-      - name: Upload v1 artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: SkyrimCars-v1.0.0-test
           path: dist/SkyrimCars-v1.0.0-test.zip
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-test.${{ github.run_number }}
+          name: SkyrimCars v1.0.0-test.${{ github.run_number }}
+          prerelease: true
+          files: dist/SkyrimCars-v1.0.0-test.zip
