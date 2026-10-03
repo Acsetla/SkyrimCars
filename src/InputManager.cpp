@@ -12,9 +12,9 @@ namespace SkyrimCars
     {
         if (auto* input = RE::BSInputDeviceManager::GetSingleton()) {
             input->AddEventSink(this);
-            logger::info("SkyrimCars: InputManager installed");
+            SKSE::log::info("SkyrimCars: InputManager installed");
         } else {
-            logger::error("SkyrimCars: BSInputDeviceManager unavailable");
+            SKSE::log::error("SkyrimCars: BSInputDeviceManager unavailable");
         }
     }
 
