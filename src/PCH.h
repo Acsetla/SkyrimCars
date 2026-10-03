@@ -14,6 +14,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include <thread>
 
 using namespace std::literals;
 using namespace SKSE;
