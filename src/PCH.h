@@ -14,3 +14,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+
+using namespace std::literals;
+using namespace SKSE;
+using namespace SKSE::log;
