@@ -5,62 +5,79 @@
 
 namespace
 {
-    std::chrono::steady_clock::time_point g_lastTick;
+    std::atomic_bool g_running{ false };
+    std::atomic_bool g_tickQueued{ false };
 
-    class UpdateSink final : public RE::BSTEventSink<RE::TESUpdateEvent>
+    void QueueTick()
     {
-    public:
-        RE::BSEventNotifyControl ProcessEvent(
-            const RE::TESUpdateEvent* event,
-            RE::BSTEventSource<RE::TESUpdateEvent>*) override
-        {
-            if (!event) {
-                return RE::BSEventNotifyControl::kContinue;
-            }
-
-            const auto now = std::chrono::steady_clock::now();
-            if (g_lastTick.time_since_epoch().count() == 0) {
-                g_lastTick = now;
-            }
-
-            const auto dt =
-                std::chrono::duration<float>(now - g_lastTick).count();
-            g_lastTick = now;
-
-            SkyrimCars::VehicleManager::GetSingleton()->Update(
-                std::clamp(dt, 0.0F, 0.1F));
-
-            return RE::BSEventNotifyControl::kContinue;
+        if (g_tickQueued.exchange(true, std::memory_order_acq_rel)) {
+            return;
         }
-    };
 
-    UpdateSink g_updateSink;
+        if (auto* task = SKSE::GetTaskInterface()) {
+            task->AddTask([]() {
+                g_tickQueued.store(false, std::memory_order_release);
+
+                static auto lastTick = std::chrono::steady_clock::now();
+                const auto now = std::chrono::steady_clock::now();
+                const auto dt = std::chrono::duration<float>(now - lastTick).count();
+                lastTick = now;
+
+                SkyrimCars::VehicleManager::GetSingleton()->Update(
+                    std::clamp(dt, 0.0F, 0.1F));
+            });
+        } else {
+            g_tickQueued.store(false, std::memory_order_release);
+        }
+    }
+
+    void StartTickThread()
+    {
+        if (g_running.exchange(true, std::memory_order_acq_rel)) {
+            return;
+        }
+
+        std::thread([] {
+            while (g_running.load(std::memory_order_acquire)) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                QueueTick();
+            }
+        }).detach();
+    }
+
+    void InitializeLogging()
+    {
+        auto logDir = SKSE::log::log_directory();
+        if (!logDir) {
+            return;
+        }
+
+        *logDir /= "SkyrimCars.log";
+
+        auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+            logDir->string(), true);
+        auto log = std::make_shared<spdlog::logger>(
+            "SkyrimCars",
+            std::move(sink));
+
+        spdlog::set_default_logger(std::move(log));
+        spdlog::set_level(spdlog::level::info);
+        spdlog::flush_on(spdlog::level::info);
+    }
 }
 
 SKSEPluginLoad(const SKSE::LoadInterface* skse)
 {
-    auto* logDir = SKSE::log::log_directory();
-    if (logDir) {
-        *logDir /= "SkyrimCars.log";
-        auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-            logDir->string(), true);
-        auto log = std::make_shared<spdlog::logger>("SkyrimCars", sink);
-        spdlog::set_default_logger(log);
-        spdlog::set_level(spdlog::level::info);
-    }
-
+    InitializeLogging();
     SKSE::Init(skse);
 
-    logger::info(
+    SKSE::log::info(
         "SkyrimCars loading for Skyrim AE/SE runtime 1.6.1170");
 
     SkyrimCars::InputManager::GetSingleton()->Install();
     SkyrimCars::VehicleManager::GetSingleton()->Initialize();
+    StartTickThread();
 
-    if (auto* tes = RE::TES::GetSingleton()) {
-        tes->AddEventSink(&g_updateSink);
-    }
-
-    logger::info("SkyrimCars loaded");
+    SKSE::log::info("SkyrimCars loaded");
     return true;
 }
