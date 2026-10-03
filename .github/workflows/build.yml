@@ -21,22 +21,22 @@ jobs:
       - name: Configure
         shell: pwsh
         run: >
-          cmake -S . -B build -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
           -DCMAKE_TOOLCHAIN_FILE="$env:GITHUB_WORKSPACE/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         shell: pwsh
         run: cmake --build build --config Release
 
-      - name: Package source
+      - name: Package v1
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Compress-Archive -Path src,CMakeLists.txt,vcpkg.json,vcpkg-configuration.json,README.md,docs,.github -DestinationPath dist/SkyrimCars-source.zip -Force
+          New-Item -ItemType Directory -Force -Path dist/SkyrimCars/SKSE/Plugins | Out-Null
+          Copy-Item build/Release/SkyrimCars.dll dist/SkyrimCars/SKSE/Plugins/SkyrimCars.dll
+          Compress-Archive -Path dist/SkyrimCars -DestinationPath dist/SkyrimCars-v1.0.0-test.zip -Force
 
-      - name: Upload source artifact
+      - name: Upload v1 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SkyrimCars-source
-          path: dist/SkyrimCars-source.zip
+          name: SkyrimCars-v1.0.0-test
+          path: dist/SkyrimCars-v1.0.0-test.zip
