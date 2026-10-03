@@ -17,7 +17,7 @@ namespace SkyrimCars
         }
 
         _initialized = true;
-        logger::info("SkyrimCars: VehicleManager initialized");
+        SKSE::log::info("SkyrimCars: VehicleManager initialized");
         RE::DebugNotification("SkyrimCars: Ctrl+I = car stub");
     }
 
@@ -91,7 +91,7 @@ namespace SkyrimCars
         _stubVehicle = true;
         _controller.Reset();
 
-        logger::info(
+        SKSE::log::info(
             "SkyrimCars: model-free vehicle stub activated, type={}",
             static_cast<int>(_type));
 
