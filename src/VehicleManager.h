@@ -31,5 +31,6 @@ namespace SkyrimCars
         VehicleType _type{ VehicleType::kMercedes };
         VehicleController _controller;
         bool _initialized{ false };
+        bool _stubVehicle{ false };
     };
 }
