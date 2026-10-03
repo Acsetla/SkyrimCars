@@ -43,11 +43,34 @@ namespace SkyrimCars
             _speed *= std::max(0.0F, 1.0F - 8.0F * deltaSeconds);
         }
 
+        const float speedFactor = std::clamp(std::abs(_speed) / 20.0F, 0.0F, 1.0F);
         const float steerTarget = input.steering * 0.65F;
         const float steerDelta = steerTarget - _steeringAngle;
         _steeringAngle += std::clamp(
             steerDelta,
             -kSteeringRate * deltaSeconds,
             kSteeringRate * deltaSeconds);
+
+        // Temporary model-free vehicle implementation.
+        // The player is used as the vehicle reference until the NIF/Havok
+        // car assets are installed. This lets the complete input/controller
+        // pipeline be tested on a clean Skyrim installation.
+        const float heading = vehicle->GetAngleZ();
+        const float yawRate = _steeringAngle * (1.8F + 2.2F * speedFactor);
+        const float newHeading = heading + yawRate * deltaSeconds * (_speed >= 0.0F ? 1.0F : -1.0F);
+
+        vehicle->SetAngle(RE::NiPoint3{
+            vehicle->GetAngleX(),
+            vehicle->GetAngleY(),
+            newHeading
+        });
+
+        if (std::abs(_speed) > 0.01F) {
+            const float distance = _speed * deltaSeconds;
+            auto position = vehicle->GetPosition();
+            position.x += std::sin(newHeading) * distance;
+            position.y += std::cos(newHeading) * distance;
+            vehicle->SetPosition(position);
+        }
     }
 }
