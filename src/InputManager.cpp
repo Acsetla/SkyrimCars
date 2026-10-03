@@ -41,14 +41,39 @@ namespace SkyrimCars
             const auto id = button->GetIDCode();
             const bool down = button->IsDown();
 
-            // DirectInput keyboard scan codes:
-            // Ctrl=29, I=23, E=18.
-            if (id == 29) {
+            // DirectInput keyboard scan codes used by Skyrim:
+            // Ctrl=29, E=18, W=17, A=30, S=31, D=32, Space=57.
+            switch (id) {
+            case 29:
                 _ctrlDown = down;
-            } else if (id == 23 && down && _ctrlDown) {
-                _toggleRequested = true;
-            } else if (id == 18 && down) {
-                _enterRequested = true;
+                break;
+            case 23: // I
+                if (down && _ctrlDown) {
+                    _toggleRequested = true;
+                }
+                break;
+            case 18: // E
+                if (down) {
+                    _enterRequested = true;
+                }
+                break;
+            case 17:
+                _forward = down;
+                break;
+            case 31:
+                _backward = down;
+                break;
+            case 30:
+                _left = down;
+                break;
+            case 32:
+                _right = down;
+                break;
+            case 57:
+                _handbrake = down;
+                break;
+            default:
+                break;
             }
         }
 
@@ -69,5 +94,35 @@ namespace SkyrimCars
         const bool result = _enterRequested;
         _enterRequested = false;
         return result;
+    }
+
+    bool InputManager::Forward() const
+    {
+        std::scoped_lock lock(_mutex);
+        return _forward;
+    }
+
+    bool InputManager::Backward() const
+    {
+        std::scoped_lock lock(_mutex);
+        return _backward;
+    }
+
+    bool InputManager::Left() const
+    {
+        std::scoped_lock lock(_mutex);
+        return _left;
+    }
+
+    bool InputManager::Right() const
+    {
+        std::scoped_lock lock(_mutex);
+        return _right;
+    }
+
+    bool InputManager::Handbrake() const
+    {
+        std::scoped_lock lock(_mutex);
+        return _handbrake;
     }
 }
